@@ -7,7 +7,7 @@ import * as tf from '@tensorflow/tfjs';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
+  title = 'Neural Network Camera App';
 
   constructor(){}
 
