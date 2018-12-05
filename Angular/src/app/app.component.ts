@@ -42,6 +42,8 @@ export class AppComponent implements AfterViewInit {
 
   public interval;
 
+  public startClicked: boolean = false;
+
   constructor() {
   }
 
@@ -166,6 +168,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   predict = () => {
+    this.startClicked = true;
     this.interval = setInterval(() => {
       const predictedClass = tf.tidy(() => {
         const img = this.webcam.capture();
@@ -185,7 +188,10 @@ export class AppComponent implements AfterViewInit {
   }
 
   stopPrediction = () => {
-    clearInterval(this.interval)
+    if(this.startClicked) {
+      clearInterval(this.interval)
+      this.startClicked = false;
+    }
   }
 
   predictClass = (classId) => {

@@ -14,7 +14,7 @@
           <div class="card-body">
             <div class="form-group">
               <button type="button" class="btn btn-success" (click)="predictClick()" [disabled]="trainStatus === 'Train' || tfForm.invalid"><i class="fas fa-play"></i>&nbsp;Start</button>
-              <button type="button" (click)="stopPrediction()" class="stop-btn btn btn-danger"><i class="fas fa-pause"></i>&nbsp;Pause</button>            
+              <button type="button" class="stop-btn btn btn-danger" (click)="stopPrediction()" [disabled]="!startClicked" ><i class="fas fa-pause"></i>&nbsp;Pause</button>            
             </div>
             <div class="row text-center">
               <div class="col">
