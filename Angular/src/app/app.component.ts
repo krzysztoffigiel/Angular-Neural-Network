@@ -1,62 +1,200 @@
 import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { tensor3d } from '@tensorflow/tfjs';
+import { Webcam } from './webcam';
+import { ControllerDataset } from './controller_dataset';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.scss']
 })
 
-
 export class AppComponent implements AfterViewInit {
+  public scrollElement;
 
-  @ViewChild('videoPlayer') videoplayer: ElementRef;
+  public getLearningRate = 0.0001;
+  public getBatchSizeFraction = 0.4;
+  public getEpochs = 20;
+  public getDenseUnits = 100;
 
-  numClasses = 4;
+  private webcam: any;
+  private truncatedMobileNet: any;
+  private layer: any;
+
+  public isLoading = true;
+
+  public totals = [0, 0, 0, 0];
+  public CONTROLS = ['up', 'down', 'left', 'right'];
+
+  private addExampleHandler: any;
+
+  private NUM_CLASSES = 4;
+  private controllerDataset: any;
+  public thumbDisplayed: any = {};
+
+  public trainStatus = 'Train';
+  public model: any;
+
+  public CONTROL_CODES = [38, 40, 37, 39];
+
+  public isSelect = '';
 
   constructor() {
   }
 
   ngAfterViewInit() {
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-      this.videoplayer.nativeElement.src = window.URL.createObjectURL(stream);
-      this.videoplayer.nativeElement.play();
+    this.init();
+  }
+
+  init = () => {
+    this.webcam = new Webcam(document.getElementById('webcam'));
+    this.scrollElement = document.getElementById('scroll-content');
+    this.controllerDataset = new ControllerDataset(this.NUM_CLASSES);
+
+    try {
+      this.webcam.setup();
+    } catch (e) { }
+
+    this.loadTruncatedMobileNet().then(res => {
+      this.truncatedMobileNet = res;
+      tf.tidy(() => this.truncatedMobileNet.predict(this.webcam.capture()));
     });
-    console.log('DOM created')
-    setTimeout(() => {
-      this.capture();
-      this.loadMobilenet();
-    }, 2000);
+
+    setTimeout(() => { this.isLoading = false; });
   }
 
-  capture() {
-    let video: HTMLVideoElement = this.videoplayer.nativeElement;
-    return tf.tidy(() => {
-      const webcamImage = tf.fromPixels(video);
-      const croppedImage = this.cropImage(webcamImage);
-      const batchedImage = croppedImage.expandDims(0); 
-      console.log('batchedImage: ', webcamImage)
+  loadTruncatedMobileNet = () => tf.loadModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json')
+    .then(res => {
+      this.layer = res.getLayer('conv_pw_13_relu');
+
+      return tf.model({ inputs: res.inputs, outputs: this.layer.output });
+    })
+
+    takePhoto = (label: number) => {
+    this.addExampleHandler = label;
+    this.totals[label]++;
+    tf.nextFrame();
+
+    tf.tidy(() => {
+      const img = this.webcam.capture();
+      this.controllerDataset.addExample(this.truncatedMobileNet.predict(img), label);
+
+      this.drawThumb(img, label);
     });
   }
 
-  cropImage(img) {
-    const size = Math.min(img.shape[0], img.shape[1]);
-    const centerHeight = img.shape[0] / 2;
-    const beginHeight = centerHeight - (size / 2);
-    const centerWidth = img.shape[1] / 2;
-    const beginWidth = centerWidth - (size / 2);
-    return img.slice([beginHeight, beginWidth, 0], [size, size, 3]);
+  drawThumb = (img, label) => {
+    if (this.thumbDisplayed[label] == null) {
+      const thumbCanvas = document.getElementById(this.CONTROLS[label] + '-thumb');
+      this.draw(img, thumbCanvas);
+    }
   }
 
-  async loadMobilenet() {
-    const mobilenet = await tf.loadModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
-    const layer = mobilenet.getLayer('conv_pw_13_relu');
-    return tf.model({inputs: mobilenet.inputs, outputs: layer.output});
+  draw = (image, canvas) => {
+    const [width, height] = [224, 224];
+    const ctx = canvas.getContext('2d');
+    const imageData = new ImageData(width, height);
+    const data = image.dataSync();
+    for (let i = 0; i < height * width; ++i) {
+      const j = i * 4;
+      imageData.data[j + 0] = (data[i * 3 + 0] + 1) * 127;
+      imageData.data[j + 1] = (data[i * 3 + 1] + 1) * 127;
+      imageData.data[j + 2] = (data[i * 3 + 2] + 1) * 127;
+      imageData.data[j + 3] = 255;
+    }
+    ctx.putImageData(imageData, 0, 0);
   }
 
-  addExample(example, label) {
-    const y = tf.tidy(() => tf.oneHot(tf.tensor1d([label]), this.numClasses));
+  train = () => {
+    if (this.controllerDataset.xs == null) {
+      throw new Error('Add some examples before training!');
+    }
+
+    this.model = tf.sequential({
+      layers: [
+        tf.layers.flatten({
+          inputShape: this.truncatedMobileNet.outputs[0].shape.slice(1)
+        }),
+
+        tf.layers.dense({
+          units: this.getDenseUnits,
+          activation: 'relu',
+          kernelInitializer: 'varianceScaling',
+          useBias: true
+        }),
+
+        tf.layers.dense({
+          units: this.NUM_CLASSES,
+          kernelInitializer: 'varianceScaling',
+          useBias: false,
+          activation: 'softmax'
+        })
+      ]
+    });
+
+    const optimizer = tf.train.adam(this.getLearningRate);
+
+    this.model.compile({ optimizer: optimizer, loss: 'categoricalCrossentropy' });
+
+    const batchSize = Math.floor(this.controllerDataset.xs.shape[0] * this.getBatchSizeFraction);
+
+    if (!(batchSize > 0)) {
+      throw new Error(
+        `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
+    }
+
+    this.model.fit(this.controllerDataset.xs, this.controllerDataset.ys, {
+      batchSize,
+      epochs: this.getEpochs,
+      callbacks: {
+        onBatchEnd: async (batch, logs) => {
+          this.trainStatus = 'Loss: ' + logs.loss.toFixed(5);
+        }
+      }
+    });
   }
 
+  trainClick = () => {
+    this.trainStatus = 'Training...';
+
+    tf.nextFrame();
+    tf.nextFrame();
+    this.train();
+  }
+
+  predict = () => {
+    setInterval(() => {
+      const predictedClass = tf.tidy(() => {
+        const img = this.webcam.capture();
+        const embeddings = this.truncatedMobileNet.predict(img);
+        const predictions = this.model.predict(embeddings);
+        return predictions.as1D().argMax();
+      });
+
+      predictedClass.data().then(res => {
+        const classId = res[0];
+        predictedClass.dispose();
+        this.predictClass(classId);
+      });
+
+      tf.nextFrame();
+    }, 300);
+  }
+
+  predictClass = (classId) => {
+    this.isSelect = `${this.CONTROLS[classId]}-style`;
+
+    if (this.CONTROLS[classId] === 'down') {
+      this.scrollElement.scrollTop += 5;
+    }
+
+    if (this.CONTROLS[classId] === 'up') {
+      this.scrollElement.scrollTop -= 5;
+    }
+  }
+
+  predictClick = () => {
+    this.predict();
+  }
 }

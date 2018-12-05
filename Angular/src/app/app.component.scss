@@ -1,0 +1,41 @@
+.tensor-flow-container {
+  margin-top: 80px;
+
+  .table td,
+  .table th {
+    border: 0;
+  }
+
+  .video {
+    transform: scaleX(-1);
+  }
+
+  .photo-content {
+    display: block;
+    margin: 10px;
+
+    .photo {
+      height: 80px;
+      border: 1px solid grey;
+      cursor: grab;
+    }
+  }
+
+  .train-content {
+    td {
+      text-align: center;
+    }
+  }
+
+  .down-thumb,
+  .left-thumb,
+  .right-thumb,
+  .up-thumb {
+    border: 5px solid green !important;
+  }
+
+  form {
+    height: 600px;
+    overflow-y: scroll;
+  }
+}

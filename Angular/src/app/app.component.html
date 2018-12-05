@@ -1,16 +1,125 @@
-<div class="container py-4">
-  <div class="card">
-    <div class="card-header">
-      <strong>TensorFlow.js Demo - Linear Regression</strong>
-    </div>
-    <div class="card-body">
-      <label>Input Value:</label>
-      <input type="text" id="inputValue" class="form-control"><br>
-    </div>
-    <button type="button" (click)="trainModel()" class="btn btn-primary" id="predictButton">{{btnText}}</button><br><br>
-    <h4><span>Result: </span></h4>
-    <h5><span class="badge badge-secondary" id="output"></span>{{output}}</h5>
-    <video id="videoCam" #videoPlayer width="224" height="224"></video>
+<app-header></app-header>
 
-  </div>
+
+<div class="container tensor-flow-container">
+  <span *ngIf="isLoading">Loading...</span>
+
+  <form #tfForm="ngForm" [hidden]="isLoading" id="scroll-content">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <span>Settings</span>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <td>
+                    <span>Learning rates</span>
+                  </td>
+                  <td>
+                    <div class="form-group">
+                      <input type="text" name="learningRates" class="form-control" placeholder="Learning rates"
+                        [(ngModel)]="getLearningRate" required>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span>Batch size</span>
+                  </td>
+                  <td>
+                    <input type="text" name="batchSizeFraction" class="form-control" placeholder="Batch size"
+                      [(ngModel)]="getBatchSizeFraction" required>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span>Epochs</span>
+                  </td>
+                  <td>
+                    <input type="text" name="epochs" class="form-control" placeholder="Epochs" [(ngModel)]="getEpochs" required>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span>Hidden units</span>
+                  </td>
+                  <td>
+                    <input type="text" name="denseUnits" class="form-control" placeholder="Hidden units" [(ngModel)]="getDenseUnits"
+                      required>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="form-group">
+              <button type="button" class="btn btn-primary" (click)="predictClick()"
+                [disabled]="trainStatus === 'Train' || tfForm.invalid">Start</button>
+            </div>
+
+            <video class="video" autoplay playsinline muted id="webcam" width="224" height="224"></video>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <span>Take a photo</span>
+          </div>
+          <div class="card-body train-content">
+            <button type="button" class="btn btn-primary" (click)="trainClick()" [disabled]="tfForm.invalid">
+              <span>{{trainStatus}}</span>
+            </button>
+            <table class="table">
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td>
+                    <div class="photo-content">
+                      <canvas class="thumb video photo" width=224 height=224 id="up-thumb" (click)="takePhoto(0)"
+                        [ngClass]="{ 'up-thumb': isSelect === 'up-style' }"></canvas>
+                    </div>
+                    <span>Total: {{totals[0]}}</span>
+                  </td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="photo-content">
+                      <canvas class="thumb video photo" width=224 height=224 id="right-thumb" (click)="takePhoto(3)"
+                        [ngClass]="{ 'right-thumb': isSelect === 'right-style' }"></canvas>
+                    </div>
+                    <span>Total: {{totals[3]}}</span>
+                  </td>
+                  <td></td>
+                  <td>
+                    <div class="photo-content">
+                      <canvas class="thumb video photo" width=224 height=224 id="left-thumb" (click)="takePhoto(2)"
+                        [ngClass]="{ 'left-thumb': isSelect === 'left-style' }"></canvas>
+                    </div>
+                    <span>Total: {{totals[2]}}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>
+                    <div class="photo-content">
+                      <canvas class="thumb video photo" width=224 height=224 id="down-thumb" (click)="takePhoto(1)"
+                        [ngClass]="{ 'down-thumb': isSelect ==='down-style' }"></canvas>
+                    </div>
+                    <span>Total: {{totals[1]}}</span>
+                  </td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>
+
+<app-footer></app-footer>
