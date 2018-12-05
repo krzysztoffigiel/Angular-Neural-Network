@@ -40,6 +40,8 @@ export class AppComponent implements AfterViewInit {
 
   public isSelect = '';
 
+  public interval;
+
   constructor() {
   }
 
@@ -164,7 +166,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   predict = () => {
-    setInterval(() => {
+    this.interval = setInterval(() => {
       const predictedClass = tf.tidy(() => {
         const img = this.webcam.capture();
         const embeddings = this.truncatedMobileNet.predict(img);
@@ -180,6 +182,10 @@ export class AppComponent implements AfterViewInit {
 
       tf.nextFrame();
     }, 300);
+  }
+
+  stopPrediction = () => {
+    clearInterval(this.interval)
   }
 
   predictClass = (classId) => {

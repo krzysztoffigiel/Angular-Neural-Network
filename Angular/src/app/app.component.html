@@ -13,7 +13,8 @@
           </div>
           <div class="card-body">
             <div class="form-group">
-              <button type="button" class="btn btn-primary" (click)="predictClick()" [disabled]="trainStatus === 'Train' || tfForm.invalid">Start</button>
+              <button type="button" class="btn btn-success" (click)="predictClick()" [disabled]="trainStatus === 'Train' || tfForm.invalid"><i class="fas fa-play"></i>&nbsp;Start</button>
+              <button type="button" (click)="stopPrediction()" class="stop-btn btn btn-danger"><i class="fas fa-pause"></i>&nbsp;Pause</button>            
             </div>
             <div class="row text-center">
               <div class="col">
@@ -72,15 +73,15 @@
             <span><b>Take a photo by clicking on the squares</b></span>
           </div>
           <div class="card-body train-content">
-            <button type="button" class="btn btn-primary" (click)="trainClick()" [disabled]="totals[0] === 0 || totals[1] === 0 || totals[2] === 0 || totals[3] === 0">
-              <span>{{trainStatus}}</span>
+            <button type="button" class="btn btn-primary" (click)="trainClick()" [disabled]="totals[0] < 10 || totals[1] < 10 || totals[2] < 10 || totals[3] < 10">
+              <span><i *ngIf="trainStatus === 'Train'" class="fas fa-graduation-cap"></i><i *ngIf="trainStatus !== 'Train'" class="fas fa-cog fa-spin"></i>&nbsp;{{trainStatus}}</span>
             </button>
             <table class="table">
               <tbody>
                 <tr>
                   <td></td>
                   <td>
-                    <span><b>Top</b></span>
+                    <span><b>Top</b>&nbsp;<i *ngIf="totals[0]>=10" class="fas fa-check"></i></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="up-thumb" (click)="takePhoto(0)"
                         [ngClass]="{ 'up-thumb': isSelect === 'up-style' }"></canvas>
@@ -91,7 +92,7 @@
                 </tr>
                 <tr>
                   <td>
-                    <span><b>Left</b></span>
+                    <span><b>Left</b>&nbsp;<i *ngIf="totals[3]>=10" class="fas fa-check"></i></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="right-thumb" (click)="takePhoto(3)"
                         [ngClass]="{ 'right-thumb': isSelect === 'right-style' }"></canvas>
@@ -100,7 +101,7 @@
                   </td>
                   <td><img class="crossed-arrows" src="./assets/img/arrows.png" alt=""></td>
                   <td>
-                    <span><b>Right</b></span>
+                    <span><b>Right</b>&nbsp;<i *ngIf="totals[2]>=10" class="fas fa-check"></i></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="left-thumb" (click)="takePhoto(2)"
                         [ngClass]="{ 'left-thumb': isSelect === 'left-style' }"></canvas>
@@ -111,7 +112,7 @@
                 <tr>
                   <td></td>
                   <td>
-                    <span><b>Down</b></span>
+                    <span><b>Down</b>&nbsp;<i *ngIf="totals[1]>=10" class="fas fa-check"></i></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="down-thumb" (click)="takePhoto(1)"
                         [ngClass]="{ 'down-thumb': isSelect ==='down-style' }"></canvas>
