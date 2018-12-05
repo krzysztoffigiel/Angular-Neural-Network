@@ -7,27 +7,35 @@
   <form #tfForm="ngForm" [hidden]="isLoading" id="scroll-content">
     <div class="row">
       <div class="col-md-6">
-        <div class="card">
+        <div class="card shadow-lg">
           <div class="card-header">
-            <span>Settings</span>
+            <span><b>Settings</b></span>
           </div>
           <div class="card-body">
+            <div class="form-group">
+              <button type="button" class="btn btn-primary" (click)="predictClick()" [disabled]="trainStatus === 'Train' || tfForm.invalid">Start</button>
+            </div>
+            <div class="row text-center">
+              <div class="col">
+                <video class="video" autoplay playsinline muted id="webcam" width="224" height="224"></video>
+              </div>
+            </div>
             <table class="table">
               <tbody>
                 <tr>
                   <td>
-                    <span>Learning rates</span>
+                    <span>Learning rates: </span>
                   </td>
                   <td>
-                    <div class="form-group">
-                      <input type="text" name="learningRates" class="form-control" placeholder="Learning rates"
-                        [(ngModel)]="getLearningRate" required>
-                    </div>
+                    <!-- <div class="form-group"> -->
+                    <input type="text" name="learningRates" class="form-control" placeholder="Learning rates"
+                      [(ngModel)]="getLearningRate" required>
+                    <!-- </div> -->
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <span>Batch size</span>
+                    <span>Batch size: </span>
                   </td>
                   <td>
                     <input type="text" name="batchSizeFraction" class="form-control" placeholder="Batch size"
@@ -36,15 +44,16 @@
                 </tr>
                 <tr>
                   <td>
-                    <span>Epochs</span>
+                    <span>Epochs: </span>
                   </td>
                   <td>
-                    <input type="text" name="epochs" class="form-control" placeholder="Epochs" [(ngModel)]="getEpochs" required>
+                    <input type="text" name="epochs" class="form-control" placeholder="Epochs" [(ngModel)]="getEpochs"
+                      required>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <span>Hidden units</span>
+                    <span>Hidden units: </span>
                   </td>
                   <td>
                     <input type="text" name="denseUnits" class="form-control" placeholder="Hidden units" [(ngModel)]="getDenseUnits"
@@ -54,22 +63,16 @@
               </tbody>
             </table>
 
-            <div class="form-group">
-              <button type="button" class="btn btn-primary" (click)="predictClick()"
-                [disabled]="trainStatus === 'Train' || tfForm.invalid">Start</button>
-            </div>
-
-            <video class="video" autoplay playsinline muted id="webcam" width="224" height="224"></video>
           </div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card">
+        <div class="card shadow-lg">
           <div class="card-header">
-            <span>Take a photo</span>
+            <span><b>Take a photo by clicking on the squares</b></span>
           </div>
           <div class="card-body train-content">
-            <button type="button" class="btn btn-primary" (click)="trainClick()" [disabled]="tfForm.invalid">
+            <button type="button" class="btn btn-primary" (click)="trainClick()" [disabled]="totals[0] === 0 || totals[1] === 0 || totals[2] === 0 || totals[3] === 0">
               <span>{{trainStatus}}</span>
             </button>
             <table class="table">
@@ -77,39 +80,43 @@
                 <tr>
                   <td></td>
                   <td>
+                    <span><b>Top</b></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="up-thumb" (click)="takePhoto(0)"
                         [ngClass]="{ 'up-thumb': isSelect === 'up-style' }"></canvas>
                     </div>
-                    <span>Total: {{totals[0]}}</span>
+                    <span>Total images: {{totals[0]}}</span>
                   </td>
                   <td></td>
                 </tr>
                 <tr>
                   <td>
+                    <span><b>Left</b></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="right-thumb" (click)="takePhoto(3)"
                         [ngClass]="{ 'right-thumb': isSelect === 'right-style' }"></canvas>
                     </div>
-                    <span>Total: {{totals[3]}}</span>
+                    <span>Total images: {{totals[3]}}</span>
                   </td>
-                  <td></td>
+                  <td><img class="crossed-arrows" src="./assets/img/arrows.png" alt=""></td>
                   <td>
+                    <span><b>Right</b></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="left-thumb" (click)="takePhoto(2)"
                         [ngClass]="{ 'left-thumb': isSelect === 'left-style' }"></canvas>
                     </div>
-                    <span>Total: {{totals[2]}}</span>
+                    <span>Total images: {{totals[2]}}</span>
                   </td>
                 </tr>
                 <tr>
                   <td></td>
                   <td>
+                    <span><b>Down</b></span>
                     <div class="photo-content">
                       <canvas class="thumb video photo" width=224 height=224 id="down-thumb" (click)="takePhoto(1)"
                         [ngClass]="{ 'down-thumb': isSelect ==='down-style' }"></canvas>
                     </div>
-                    <span>Total: {{totals[1]}}</span>
+                    <span>Total images: {{totals[1]}}</span>
                   </td>
                   <td></td>
                 </tr>

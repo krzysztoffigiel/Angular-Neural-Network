@@ -8,6 +8,12 @@
 
   .video {
     transform: scaleX(-1);
+    margin-bottom: 20px;
+  }
+
+  .crossed-arrows {
+    height: 10rem;
+    width: auto;
   }
 
   .photo-content {
@@ -25,6 +31,11 @@
     td {
       text-align: center;
     }
+  }
+
+  .card {
+    border: solid 2px lightgrey;
+    height: 45rem;
   }
 
   .down-thumb,
