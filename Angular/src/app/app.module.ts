@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { FooterComponent } from './footer/footer.component';
 import { HeaderComponent } from './header/header.component';
 
+import {MatButtonModule, MatCheckboxModule, MatTooltipModule, MatProgressBarModule, MatSnackBarModule} from '@angular/material';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,12 @@ import { HeaderComponent } from './header/header.component';
     BrowserModule,
     CommonModule,
     FormsModule,
-    WebcamModule
+    WebcamModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatTooltipModule,
+    MatProgressBarModule,
+    MatSnackBarModule
   ],
   providers: [],
   bootstrap: [AppComponent]

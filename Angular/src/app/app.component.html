@@ -13,8 +13,10 @@
           </div>
           <div class="card-body">
             <div class="form-group">
-              <button type="button" class="btn btn-success" (click)="predictClick()" [disabled]="trainStatus === 'Train' || tfForm.invalid"><i class="fas fa-play"></i>&nbsp;Start</button>
-              <button type="button" class="stop-btn btn btn-danger" (click)="stopPrediction()" [disabled]="!startClicked" ><i class="fas fa-pause"></i>&nbsp;Pause</button>            
+              <button type="button" class="btn btn-success" (click)="predictClick()" [disabled]="trainStatus === 'Train' || tfForm.invalid"><i
+                  class="fas fa-play"></i>&nbsp;Start</button>
+              <button type="button" class="stop-btn btn btn-danger" (click)="stopPrediction()" [disabled]="!startClicked"><i
+                  class="fas fa-pause"></i>&nbsp;Pause</button>
             </div>
             <div class="row text-center">
               <div class="col">
@@ -73,9 +75,21 @@
             <span><b>Take a photo by clicking on the squares</b></span>
           </div>
           <div class="card-body train-content">
-            <button type="button" class="btn btn-primary" (click)="trainClick()" [disabled]="totals[0] < 10 || totals[1] < 10 || totals[2] < 10 || totals[3] < 10">
-              <span><i *ngIf="trainStatus === 'Train'" class="fas fa-graduation-cap"></i><i *ngIf="trainStatus !== 'Train'" class="fas fa-cog fa-spin"></i>&nbsp;{{trainStatus}}</span>
-            </button>
+
+            <div class="row">
+              <div class="col col-4">
+                <button type="button" class="btn btn-primary" (click)="trainClick()" [disabled]="totals[0] < 10 || totals[1] < 10 || totals[2] < 10 || totals[3] < 10">
+                  <span><i *ngIf="trainStatus === 'Train'" class="fas fa-graduation-cap"></i><i *ngIf="trainStatus !== 'Train'"
+                      class="fas fa-cog fa-spin"></i>&nbsp;{{trainStatus}}</span>
+                </button>
+              </div>
+              <div class="col col-8">
+                <input class="patterns-input form-control" type="text" name="pattern" [(ngModel)]="patternsCount"
+                  placeholder="Input patterns count..." required>
+                <small id="emailHelp" class="form-text text-muted patterns-warning">{{noPatternsMsg}}</small>
+              </div>
+            </div>
+
             <table class="table">
               <tbody>
                 <tr>

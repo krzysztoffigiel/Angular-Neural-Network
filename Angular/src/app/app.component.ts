@@ -1,8 +1,12 @@
 import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
+import * as tf_node from '@tensorflow/tfjs-node';
 import { tensor3d } from '@tensorflow/tfjs';
 import { Webcam } from './webcam';
 import { ControllerDataset } from './controller_dataset';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar } from '@angular/material';
+
 
 @Component({
   selector: 'app-root',
@@ -44,7 +48,10 @@ export class AppComponent implements AfterViewInit {
 
   public startClicked: boolean = false;
 
-  constructor() {
+  patternsCount: number;
+  noPatternsMsg: string = '';
+
+  constructor(public snackBar: MatSnackBar) {
   }
 
   ngAfterViewInit() {
@@ -68,24 +75,45 @@ export class AppComponent implements AfterViewInit {
     setTimeout(() => { this.isLoading = false; });
   }
 
+  // loading pretrained MobileNet into the webpage
+  // constructing a new model, which outputs an internal activation from MobileNet
   loadTruncatedMobileNet = () => tf.loadModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json')
     .then(res => {
+      // reaching in to an internal layer of pretrained MobileNet model and
+      // constructing a new model where the inputs are the same outputs of MobileNet 
       this.layer = res.getLayer('conv_pw_13_relu');
-
+      // return a model that outputs an internal activation
       return tf.model({ inputs: res.inputs, outputs: this.layer.output });
     })
 
-    takePhoto = (label: number) => {
+  takePhoto = (label: number) => {
+
+    console.log(`Label: ${label}`);
+
     this.addExampleHandler = label;
-    this.totals[label]++;
-    tf.nextFrame();
 
-    tf.tidy(() => {
-      const img = this.webcam.capture();
-      this.controllerDataset.addExample(this.truncatedMobileNet.predict(img), label);
+    if(this.patternsCount) {
+      this.noPatternsMsg = '';
+      for (let i = 0; i < this.patternsCount; i++) {
 
-      this.drawThumb(img, label);
-    });
+        setTimeout(() => {
+          this.totals[label]++;
+          tf.nextFrame();
+  
+          tf.tidy(() => {
+            const img = this.webcam.capture();
+            this.controllerDataset.addExample(this.truncatedMobileNet.predict(img), label);
+  
+            this.drawThumb(img, label);
+  
+          });
+        }, i * 1000);
+  
+      }
+    } else {
+      this.noPatternsMsg = 'You have to input patterns count!';
+    }
+    
   }
 
   drawThumb = (img, label) => {
@@ -141,6 +169,10 @@ export class AppComponent implements AfterViewInit {
 
     this.model.compile({ optimizer: optimizer, loss: 'categoricalCrossentropy' });
 
+    this.saveModelToFile(this.model);
+
+    console.log('Model: ', this.model);
+
     const batchSize = Math.floor(this.controllerDataset.xs.shape[0] * this.getBatchSizeFraction);
 
     if (!(batchSize > 0)) {
@@ -157,6 +189,10 @@ export class AppComponent implements AfterViewInit {
         }
       }
     });
+  }
+
+  async saveModelToFile(model) {
+    // await model.save('/src/model/model.txt');
   }
 
   trainClick = () => {
@@ -188,7 +224,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   stopPrediction = () => {
-    if(this.startClicked) {
+    if (this.startClicked) {
       clearInterval(this.interval)
       this.startClicked = false;
     }

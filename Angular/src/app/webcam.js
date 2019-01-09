@@ -5,10 +5,15 @@ export class Webcam {
     this.webcamElement = webcamElement;
   }
 
+  // reading images from HTML tag
   capture() {
     return tf.tidy(() => {
+      // reading single frame from webcam and returning a Tensor of shape [height, width, 3]
+      // inner most dimension , 3, corresponds to three channels RGB
       const webcamImage = tf.fromPixels(this.webcamElement);
       const croppedImage = this.cropImage(webcamImage);
+      // creating new outer dimension of size 1. Here, the cropped image is of shape [224, 224, 3]
+      // expandDims(0) reshapes this sensor to [1, 224, 224, 3] - its a batch of a single image
       const batchedImage = croppedImage.expandDims(0);
       return batchedImage.toFloat().div(tf.scalar(127)).sub(tf.scalar(1));
     });
