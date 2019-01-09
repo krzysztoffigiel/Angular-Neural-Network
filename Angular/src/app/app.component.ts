@@ -111,7 +111,7 @@ export class AppComponent implements AfterViewInit {
   
       }
     } else {
-      this.noPatternsMsg = 'You have to input patterns count!';
+      this.noPatternsMsg = 'You have to input patterns count! It should be more than 10.';
     }
     
   }
